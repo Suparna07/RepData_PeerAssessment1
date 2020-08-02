@@ -1,0 +1,73 @@
+####REPRODUCIBLE RESEARCH ASSIGNMENT 1####
+###1.LOAD THE DATA###
+```{r, echo FALSE}
+library(ggplot2)
+library(scales)
+library(Hmisc)
+activity <- read.csv("C:/Users/suparnapal2000/Downloads/repdata_data_activity/activity.csv")
+```
+###2.MEAN TOTAL STEPS TAKEN PER DAY###
+```{r}
+stepsByDay <- tapply(activity$steps, activity$date, sum, na.rm = T)
+```
+###1.HISTOGRAM OF TOTAL NUMBER OF STEPS TAKEN PER DAY###
+```{r}
+library(ggplot2)
+qplot(stepsByDay, xlab = "Total steps per day", ylab = "Frequency")
+```
+###MEAN AND MEDIAN OF TOAL STEPS TAKEN PER DAY
+```{r}
+mean value <- mean(stepsByDay)
+median value <- median(stepsByDay)
+```
+###AVERAGE DAILY ACTIVITY PATTERN###
+```{r}
+library(ggplot2)
+averages <- aggregate(x = list(steps = activity$steps), by = list(interval = activity$interval), FUN = mean, na.rm = T )
+ggplot(data = averages, aes(x = interval, y = steps))+ geom_line() + 
+  xlab("5-minute interval")+
+  ylab("average no of steps taken")
+```
+###MAXIMUM NO OF STEPS###
+```{r}
+averages[which.max(averages$steps), ]
+```
+###MISSING VALUES###
+```{r}
+missing values <- length(which(is.na(activity$steps)))
+```
+###NEW DATA SET EQUAL TO ORGINAL DATA BUT WITH MISSING VALUE###
+```{r}
+activityDataImputed <- activity
+activityDataImputed$steps <- impute(activity$steps, fun = mean)
+```
+###HISTOGRAM OF TOTAL NO OF STES TAKEN EACH DAY WITH IMPUTED VALUE###
+```{r}
+stepsByDayImputed <- tapply(activityDataImputed$steps,activityDataImputed$date, sum )
+qplot(stepsByDayImputed , xlab = "Total steps per day imputed", ylab = "Frequency")
+```
+###MEAN AND MEDIAN OF IMPUTED VALUE###
+```{r}
+stepsByDayMeanImputed <- mean(stepsByDayImputed)
+stepsByDayMedianImputed <- median(stepsByDayImputed)
+```
+#### Are there differences in activity patterns between weekdays and weekends?
+##### 1. Create a new factor variable in the dataset with two levels ??? ???weekday??? and ???weekend??? indicating whether a given date is a weekday or weekend day.
+
+
+```{r}
+activityDataImputed$dateType <-  ifelse(as.POSIXlt(activityDataImputed$date)$wday %in% c(0,6), 'weekend', 'weekday')
+```
+
+##### 2. Panel plot containing a time series plot
+
+
+```{r}
+averagedActivityDataImputed <- aggregate(steps ~ interval + dateType, data=activityDataImputed, mean)
+ggplot(averagedActivityDataImputed, aes(interval, steps)) + 
+    geom_line() + 
+    facet_grid(dateType ~ .) +
+    xlab("5-minute interval") + 
+    ylab("avarage number of steps")
+```
+
